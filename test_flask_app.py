@@ -3,7 +3,7 @@ import requests
 
 def test_product_create(name):
     # Create a new product
-    url = "http://127.0.0.1:5002/products"
+    url = "http://127.0.0.1:5000/products"
 
     data = {
         "name": name,

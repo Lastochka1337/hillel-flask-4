@@ -96,6 +96,26 @@ def product_partial_update(
     finally:
         connection.close()
 
+def fetch_products_with_similar_letters(letters):
+    connection = sqlite3.connect("data.db")
+
+    # Return all products
+    connection = sqlite3.connect("data.db")
+
+    try:
+        cursor = connection.cursor()
+
+        pattern = f"%{letters}%"
+        cursor.execute("SELECT * FROM product WHERE name LIKE ?", (pattern,))
+
+        products_rows = cursor.fetchall()
+
+        return [
+            Product.from_row(row)
+            for row in products_rows
+        ]
+    finally:
+        connection.close()
 
 def delete_product(product_id: int) -> int:
     # Delete product by id

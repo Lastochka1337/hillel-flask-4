@@ -5,7 +5,7 @@ from urllib import request
 from flask import Flask, request
 from pydantic import ValidationError
 
-from db import read_products, create_product, read_product, product_partial_update, delete_product
+from db import read_products, create_product, read_product, product_partial_update, delete_product, fetch_products_with_similar_letters
 from models import ProductPayload
 from serializers import serialize_products, serialize_product
 
@@ -28,7 +28,10 @@ class CustomJSONEncoder(json.JSONEncoder):
 @app.route("/products", methods=["GET", "POST"])
 def products_api():
     if request.method == "GET":
-        products = read_products()
+        if request.args.get("name"):
+            products = fetch_products_with_similar_letters(request.args.get("name"))
+        else:
+            products = read_products()
 
         return serialize_products(products)
     elif request.method == "POST":
