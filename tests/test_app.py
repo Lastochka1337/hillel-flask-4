@@ -6,7 +6,6 @@ from peewee import SqliteDatabase
 from app import app
 from peewee_db import Product
 
-
 test_db = SqliteDatabase(":memory:")
 
 
@@ -26,21 +25,20 @@ class AppTestCase(unittest.TestCase):
         # Create duplicated product
         Product.get_or_create(name="Duplicate", price=100)
 
+        # Create product for deletion test
+        Product.get_or_create(name="DeleteMe", price=50)
+
     def tearDown(self):
-        # Delete duplicated product
-        Product.delete().where(Product.name == "Duplicate").execute()
         # Delete test products
         Product.delete().where(Product.name.startswith("test_")).execute()
-
         # Close test DB
         test_db.drop_tables([Product])
         test_db.close()
 
     def test_products_get(self):
         response = self.app.get("/products")
-
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json), 1)
+        self.assertEqual(len(response.json), 2)  # Adjusted to 2 since there's now a "DeleteMe" product
 
     def test_products_post(self):
         unique_product_name = f"test_{random.randint(1, 1000000)}"
@@ -61,3 +59,15 @@ class AppTestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json["error"], "Price must be a number")
+
+    def test_product_delete_existing(self):
+        response = self.app.delete("/products/DeleteMe")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["message"], "Product deleted successfully")
+
+    def test_product_delete_non_existing(self):
+        response = self.app.delete("/products/NonExistentProduct")
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json["error"], "Product not found")
